@@ -317,47 +317,60 @@ useEffect(() => {
 }, [selectedBillPhoto]);
 
   return (
-    <main className="min-h-screen bg-gray-100 p-8">
-<div className="flex items-center justify-between">
-  <div>
-    <h1 className="text-4xl font-bold text-gray-900">
-      Household Manager
-    </h1>
-
-    <p className="mt-2 text-gray-600">
-      Keep track of your bills and never miss a payment.
-    </p>
+    <main className="min-h-screen overflow-x-hidden bg-[#f4f6fb] px-4 py-5 text-slate-900 sm:px-6 sm:py-8 lg:px-10">
+      <div className="mx-auto max-w-7xl">
+<header className="flex flex-col gap-5 rounded-3xl bg-[#101a30] px-5 py-6 text-white shadow-xl shadow-slate-900/10 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+  <div className="flex items-center gap-4">
+    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo-500 text-xl font-bold text-white shadow-lg shadow-indigo-950/30">
+      H
+    </div>
+    <div>
+      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-200">
+        Household finance
+      </p>
+      <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
+        Household Manager
+      </h1>
+      <p className="mt-1 text-sm text-slate-300">
+        A clear view of the money that keeps home running.
+      </p>
+    </div>
   </div>
 
-  <div className="flex items-center gap-3">
+  <div className="flex w-full gap-3 sm:w-auto">
     <button
       onClick={() => setShowForm(true)}
-      className="rounded-lg bg-black px-5 py-3 font-medium text-white hover:bg-gray-800"
+      className="flex-1 rounded-xl bg-indigo-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-950/20 hover:bg-indigo-400 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-300/40 sm:flex-none"
     >
-      + Add Bill
+      + Add bill
     </button>
     <button
       onClick={signOut}
-      className="rounded-lg border border-gray-300 px-4 py-3 font-medium text-gray-700 hover:bg-white"
+      className="rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-medium text-slate-100 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/20"
     >
       Log out
     </button>
   </div>
-</div>
+</header>
 
 {dataError && (
-  <p role="alert" className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">
+  <p role="alert" className="mt-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-800 shadow-sm">
     {dataError}
   </p>
 )}
 
 {showForm && (
-  <div className="mt-8 rounded-xl bg-white p-6 shadow">
-    <h2 className="text-xl font-semibold text-gray-900">
-      Add a Bill
+  <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+    <div className="flex items-start justify-between gap-4">
+    <div>
+    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-indigo-600">New payment</p>
+    <h2 className="mt-1 text-xl font-semibold tracking-tight text-slate-900">
+      Add a bill
     </h2>
+    </div>
+    </div>
 
-    <div className="mt-4 grid gap-4">
+    <div className="mt-5 grid gap-4 sm:grid-cols-2">
 <input
   type="file"
   accept=".pdf,.jpg,.jpeg,.png"
@@ -365,11 +378,11 @@ useEffect(() => {
     const file = e.target.files?.[0] ?? null;
     setBillFile(file);
   }}
-  className="rounded-lg border border-gray-300 bg-white p-3 text-gray-900"
+  className="min-h-12 w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700 sm:col-span-2"
 />
 
 {billFile && (
-  <p className="text-sm text-gray-600">
+  <p className="text-sm text-slate-500 sm:col-span-2">
     Selected: {billFile.name}
   </p>
 )}
@@ -381,7 +394,7 @@ useEffect(() => {
   placeholder="Bill name"
   value={billName}
   onChange={(e) => setBillName(e.target.value)}
-  className="rounded-lg border border-gray-300 bg-white p-3 text-gray-900 placeholder:text-gray-500"
+  className="w-full border border-slate-200 p-3 text-slate-900 placeholder:text-slate-400"
 />
 
 <input
@@ -391,7 +404,7 @@ useEffect(() => {
   placeholder="Amount"
   value={billAmount}
   onChange={(e) => setBillAmount(e.target.value)}
-  className="rounded-lg border border-gray-300 bg-white p-3 text-gray-900 placeholder:text-gray-500"
+  className="w-full border border-slate-200 p-3 text-slate-900 placeholder:text-slate-400"
 />
 
 <input
@@ -399,13 +412,13 @@ useEffect(() => {
   required
   value={billDate}
   onChange={(e) => setBillDate(e.target.value)}
-  className="rounded-lg border border-gray-300 bg-white p-3 text-gray-900"
+  className="w-full border border-slate-200 p-3 text-slate-900 sm:col-span-2"
 />
 
       <select
   value={billCategory}
   onChange={(e) => setBillCategory(e.target.value)}
-  className="rounded-lg border border-gray-300 bg-white p-3 text-gray-900"
+  className="w-full border border-slate-200 bg-white p-3 text-slate-900 sm:col-span-2"
 >
         <option>Electricity</option>
         <option>Internet</option>
@@ -414,18 +427,18 @@ useEffect(() => {
         <option>Other</option>
       </select>
 
-      <div className="flex gap-3">
+      <div className="flex flex-col-reverse gap-3 sm:col-span-2 sm:flex-row">
   <button
   onClick={saveBill}
   disabled={uploading}
-  className="rounded-lg bg-black px-5 py-3 font-medium text-white disabled:opacity-60"
+  className="rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
 >
   {uploading ? "Saving..." : "Save Bill"}
 </button>
 
         <button
           onClick={() => setShowForm(false)}
-          className="rounded-lg border px-5 py-3 font-medium"
+          className="rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
         >
           Cancel
         </button>
@@ -434,21 +447,28 @@ useEffect(() => {
   </div>
 )}
 {loading && (
-  <p role="status" className="mt-8 text-center text-gray-500">
-    Loading your household data...
+  <p role="status" className="mt-6 rounded-2xl border border-slate-200 bg-white p-4 text-center text-sm font-medium text-slate-500 shadow-sm">
+    Loading your household overview...
   </p>
 )}
-      <div className="mt-8 grid gap-6 md:grid-cols-4">
-        <div className="rounded-xl bg-white p-6 shadow">
-          <h2 className="text-lg font-semibold text-gray-900">This Month</h2>
-          <p className="mt-2 text-3xl font-bold text-gray-900">
-  ₹{totalThisMonth}
+      <section aria-label="Financial overview" className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-slate-500">Due this month</h2>
+            <span className="rounded-xl bg-indigo-50 px-2.5 py-2 text-xs font-bold text-indigo-600">Bills due</span>
+          </div>
+          <p className="mt-5 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
+  ₹{totalThisMonth.toLocaleString("en-IN")}
 </p>
+          <p className="mt-2 text-xs text-slate-400">Based on bill due dates</p>
         </div>
 
-        <div className="rounded-xl bg-white p-6 shadow">
-          <h2 className="text-lg font-semibold text-gray-900">Due This Week</h2>
-          <p className="mt-2 text-3xl font-bold text-gray-900">
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-slate-500">Due this week</h2>
+            <span className="rounded-xl bg-amber-50 px-2.5 py-2 text-xs font-bold text-amber-600">Bills due</span>
+          </div>
+          <p className="mt-5 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
   ₹
   {bills
     .filter((bill) => {
@@ -466,51 +486,62 @@ useEffect(() => {
     })
     .reduce((total, bill) => total + bill.amount, 0)}
 </p>
+          <p className="mt-2 text-xs text-amber-600">Upcoming unpaid bills</p>
         </div>
 
-        <div className="rounded-xl bg-white p-6 shadow">
-          <h2 className="text-lg font-semibold text-gray-900">
-            Total Outstanding
-          </h2>
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-slate-500">Outstanding</h2>
+            <span className="rounded-xl bg-rose-50 px-2.5 py-2 text-xs font-bold text-rose-600">Unpaid bills</span>
+          </div>
 
-          <p className="mt-2 text-3xl font-bold text-gray-900">
+          <p className="mt-5 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
     ₹
     {bills
       .filter((bill) => !bill.paid)
       .reduce((total, bill) => total + bill.amount, 0)}
   </p>
+          <p className="mt-2 text-xs text-slate-400">Across all unpaid bills</p>
         </div>
 
-        <div className="rounded-xl bg-white p-6 shadow">
-          <h2 className="text-lg font-semibold text-gray-900">
-            Total Expenses
-          </h2>
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-slate-500">Total expenses</h2>
+            <span className="rounded-xl bg-emerald-50 px-2.5 py-2 text-xs font-bold text-emerald-600">Expenses</span>
+          </div>
 
-          <p className="mt-2 text-3xl font-bold text-gray-900">
-            ₹{totalExpenses}
+          <p className="mt-5 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
+            ₹{totalExpenses.toLocaleString("en-IN")}
           </p>
+          <p className="mt-2 text-xs text-slate-400">Recorded expenses</p>
         </div>
-      </div>
-      <div className="mt-8 rounded-xl bg-white p-6 shadow">
-  <h2 className="text-xl font-semibold text-gray-900">
-    Upcoming Payments
-  </h2>
+      </section>
+      <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+  <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-indigo-600">Bills & payments</p>
+      <h2 className="mt-1 text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">
+        Upcoming payments
+      </h2>
+    </div>
+    <p className="text-sm text-slate-500">{bills.length} {bills.length === 1 ? "bill" : "bills"} tracked</p>
+  </div>
 
-  <div className="mt-4 grid gap-3 sm:grid-cols-3">
+  <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
     <input
       type="search"
       aria-label="Search bills by name"
       placeholder="Search bills..."
       value={billSearch}
       onChange={(event) => setBillSearch(event.target.value)}
-      className="rounded-lg border border-gray-300 p-3 text-gray-900 placeholder:text-gray-500"
+      className="w-full border border-slate-200 p-3 text-slate-900 placeholder:text-slate-400"
     />
 
     <select
       aria-label="Filter bills by category"
       value={billCategoryFilter}
       onChange={(event) => setBillCategoryFilter(event.target.value)}
-      className="rounded-lg border border-gray-300 bg-white p-3 text-gray-900"
+      className="w-full border border-slate-200 bg-white p-3 text-slate-900"
     >
       <option>All</option>
       {Array.from(new Set(bills.map((bill) => bill.category))).map((category) => (
@@ -522,7 +553,7 @@ useEffect(() => {
       aria-label="Filter bills by payment status"
       value={billStatusFilter}
       onChange={(event) => setBillStatusFilter(event.target.value)}
-      className="rounded-lg border border-gray-300 bg-white p-3 text-gray-900"
+      className="w-full border border-slate-200 bg-white p-3 text-slate-900 sm:col-span-2 lg:col-span-1"
     >
       <option>All</option>
       <option>Paid</option>
@@ -530,9 +561,9 @@ useEffect(() => {
     </select>
   </div>
 
-  <div className="mt-4 space-y-4">
+  <div className="mt-5 divide-y divide-slate-100">
     {filteredBills.length === 0 ? (
-      <p className="py-4 text-center text-gray-500">
+      <p className="rounded-2xl bg-slate-50 px-4 py-10 text-center text-sm text-slate-500">
   {loading
     ? "Loading bills..."
     : loadError
@@ -544,17 +575,15 @@ useEffect(() => {
     ) : filteredBills.map((bill) => (
       <div
   key={bill.id}
-        className={`flex items-center justify-between border-b pb-4 ${
-          bill.paid ? "opacity-50" : ""
-        }`}
+        className="flex flex-col gap-4 py-5 first:pt-2 sm:flex-row sm:items-center sm:justify-between"
       >
         <div>
-          <div className="flex items-center gap-3">
+          <div className="flex min-w-0 flex-col items-start gap-3">
             <p
-              className={`font-medium ${
+              className={`max-w-full rounded-xl border px-3.5 py-2 text-base font-bold tracking-tight shadow-sm sm:text-lg ${
                 bill.paid
-                  ? "text-gray-500 line-through"
-                  : "text-gray-900"
+                  ? "border-slate-200 bg-slate-50 text-slate-400 line-through"
+                  : "border-indigo-100 bg-indigo-50/70 text-slate-950"
               }`}
             >
               {bill.name}
@@ -564,26 +593,26 @@ useEffect(() => {
                 type="button"
                 aria-label={`View photo for ${bill.name}`}
                 onClick={() => setSelectedBillPhoto(bill)}
-                className="overflow-hidden rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="shrink-0 overflow-hidden rounded-xl border border-slate-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
                 <Image
                   src={bill.imageUrl}
                   alt=""
-                  width={48}
-                  height={48}
+                  width={88}
+                  height={88}
                   unoptimized
                   onError={() =>
                     setFailedBillPhotoIds((current) =>
                       new Set(current).add(bill.id)
                     )
                   }
-                  className="h-12 w-12 object-cover"
+                  className="h-22 w-22 object-cover"
                 />
               </button>
             )}
           </div>
 
-          <p className="text-sm text-gray-500">
+          <p           className="mt-2 text-sm text-slate-500">
             {bill.category} •{" "}
             {(() => {
               const today = new Date();
@@ -606,7 +635,7 @@ useEffect(() => {
           </p>
 
           <span
-            className={`mt-2 inline-block rounded-full px-3 py-1 text-xs font-medium ${
+            className={`mt-3 inline-flex items-center rounded-full px-3 py-1.5 text-xs font-semibold ${
               (() => {
                 const today = new Date();
                 const dueDate = new Date(bill.dueDate);
@@ -646,10 +675,9 @@ useEffect(() => {
 
         <div className="flex items-center gap-4">
           <p className="font-semibold text-gray-900">
-            ₹{bill.amount}
+            ₹{bill.amount.toLocaleString("en-IN")}
           </p>
-
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-wrap gap-2 sm:flex-nowrap">
             <button
               onClick={() => {
                 setEditingBill({ ...bill });
@@ -657,14 +685,18 @@ useEffect(() => {
                 setEditPhotoFile(null);
                 setEditError("");
               }}
-              className="rounded-lg border px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100"
+              className="rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2.5 text-xs font-semibold text-indigo-700 hover:border-indigo-300 hover:bg-indigo-100 sm:text-sm"
             >
               Edit
             </button>
 
             <button
               onClick={() => void setBillPaid(bill)}
-              className="rounded-lg border px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100"
+              className={`rounded-xl border px-3 py-2.5 text-xs font-semibold sm:text-sm ${
+                bill.paid
+                  ? "border-amber-200 bg-amber-50 text-amber-800 hover:border-amber-300 hover:bg-amber-100"
+                  : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:border-emerald-300 hover:bg-emerald-100"
+              }`}
             >
               {bill.paid ? "Mark Unpaid" : "Mark Paid"}
             </button>
@@ -678,7 +710,7 @@ useEffect(() => {
                 if (!confirmed) return;
                 void deleteBill(bill);
               }}
-              className="rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
+              className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2.5 text-xs font-semibold text-rose-700 hover:border-rose-300 hover:bg-rose-100 sm:text-sm"
             >
               Delete
             </button>
@@ -687,7 +719,7 @@ useEffect(() => {
       </div>
     ))}
   </div>
-</div>
+</section>
 
 {editingBill && (
   <div
@@ -695,7 +727,7 @@ useEffect(() => {
     aria-modal="true"
     aria-labelledby="edit-bill-heading"
     onClick={() => setEditingBill(null)}
-    className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-6"
+    className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-950/60 p-4 backdrop-blur-sm sm:p-6"
   >
     <form
       onSubmit={(event) => {
@@ -703,7 +735,7 @@ useEffect(() => {
         void saveBillEdit();
       }}
       onClick={(event) => event.stopPropagation()}
-      className="w-full max-w-md space-y-4 rounded-xl bg-white p-6 shadow"
+      className="my-auto w-full max-w-md space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl sm:p-7"
     >
       <h2 id="edit-bill-heading" className="text-xl font-semibold text-gray-900">
         Edit Bill
@@ -813,7 +845,7 @@ useEffect(() => {
     aria-modal="true"
     aria-label={`${selectedBillPhoto.name} bill photo`}
     onClick={() => setSelectedBillPhoto(null)}
-    className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-6"
+    className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 p-4 backdrop-blur-sm sm:p-6"
   >
     <div
       className="relative max-h-full max-w-full"
@@ -823,7 +855,7 @@ useEffect(() => {
         type="button"
         aria-label="Close image"
         onClick={() => setSelectedBillPhoto(null)}
-        className="absolute right-2 top-2 rounded-lg bg-white px-3 py-2 text-sm font-medium text-gray-900 shadow hover:bg-gray-100"
+        className="absolute right-2 top-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-900 shadow-lg hover:bg-indigo-50"
       >
         Close
       </button>
@@ -845,12 +877,13 @@ useEffect(() => {
   </div>
 )}
 
-      <div className="mt-8 rounded-xl bg-white p-6 shadow">
-  <h2 className="text-xl font-semibold text-gray-900">
-    Spending by Category
+      <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-indigo-600">Spending overview</p>
+  <h2 className="mt-1 text-xl font-semibold tracking-tight text-slate-900">
+    Outstanding by category
   </h2>
 
-  <div className="mt-4 space-y-3">
+  <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
     {Array.from(
       new Set(bills.map((bill) => bill.category))
     ).map((category) => {
@@ -861,23 +894,24 @@ useEffect(() => {
       return (
         <div
           key={category}
-          className="flex items-center justify-between border-b pb-3"
+          className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 px-4 py-3"
         >
-          <p className="font-medium text-gray-900">
+          <p className="font-medium text-slate-700">
             {category}
           </p>
 
-          <p className="font-semibold text-gray-900">
-            ₹{total}
+          <p className="font-semibold text-slate-900">
+            ₹{total.toLocaleString("en-IN")}
           </p>
         </div>
       );
     })}
   </div>
-</div>
+</section>
 
 <ExpenseForm onAdd={addExpense} />
 <ExpenseList expenses={expenses} loading={loading} loadError={loadError} />
+      </div>
     </main>
   );
 }
