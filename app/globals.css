@@ -80,6 +80,16 @@ select.dashboard-dark-field {
   color: #f8fafc;
 }
 
+select.dashboard-dark-field option {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+select.dashboard-dark-field option:checked {
+  background-color: #d1fae5;
+  color: #064e3b;
+}
+
 ::selection {
   background: #c7d2fe;
   color: #172033;

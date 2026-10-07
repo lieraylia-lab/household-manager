@@ -10,7 +10,9 @@ Supabase PostgreSQL. Each account can access only its own bills and expenses.
    publishable key from the Supabase project settings.
 3. Apply all SQL migrations in `supabase/migrations/` using the Supabase SQL
    Editor. The bill-photo migrations configure the private Storage bucket and
-   its per-user access policies.
+   its per-user access policies. The monthly-budget migration creates an
+   isolated per-user, per-month budget table; it does not alter existing bills
+   or expenses.
 4. In Supabase Authentication settings, add
    `http://localhost:3000/auth/callback*` and
    `https://<your-vercel-domain>/auth/callback*` as allowed redirect URL

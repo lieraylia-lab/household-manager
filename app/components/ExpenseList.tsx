@@ -75,19 +75,27 @@ export default function ExpenseList({
       <div className="relative">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-violet-300">Expense activity</p>
+          <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-violet-300">
+            <span aria-hidden="true" className="inline-flex h-6 w-6 items-center justify-center rounded-lg border border-violet-200/15 bg-violet-300/[0.08]">
+              <svg viewBox="0 0 20 20" fill="none" className="h-3.5 w-3.5">
+                <path d="M5 3.5h7l3 3V16a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1Z" stroke="currentColor" strokeWidth="1.5" />
+                <path d="M12 3.5V7h3M7 10h6M7 13h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+            </span>
+            Spending history
+          </p>
           <h2 id="recent-expenses-heading" className="mt-2 text-xl font-semibold tracking-tight text-white sm:text-2xl">
-            Recent Expenses
+            Recent spending
           </h2>
-          <p className="mt-1 text-sm text-slate-400">Review your recorded household spending</p>
+          <p className="mt-1 text-sm text-slate-400">See what you have recently spent money on</p>
         </div>
         <div className="flex gap-3">
           <div className="rounded-xl border border-white/10 bg-slate-950/25 px-4 py-2.5">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Showing</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Expenses shown</p>
             <p className="mt-0.5 text-sm font-semibold text-white">{filteredExpenses.length} {filteredExpenses.length === 1 ? "expense" : "expenses"}</p>
           </div>
           <div className="rounded-xl border border-violet-300/20 bg-violet-400/10 px-4 py-2.5">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-violet-200">Filtered total</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-violet-200">Total shown</p>
             <p className="mt-0.5 text-sm font-bold tabular-nums text-white">₹{filteredTotal.toLocaleString("en-IN")}</p>
           </div>
         </div>
