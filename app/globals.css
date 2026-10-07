@@ -73,6 +73,13 @@ input[type="file"] {
   background: #f8faff;
 }
 
+input.dashboard-dark-field,
+select.dashboard-dark-field {
+  border-color: rgb(255 255 255 / 12%);
+  background-color: #111827;
+  color: #f8fafc;
+}
+
 ::selection {
   background: #c7d2fe;
   color: #172033;
