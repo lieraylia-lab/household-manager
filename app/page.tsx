@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import ExpenseForm from "./components/ExpenseForm";
 import ExpenseList from "./components/ExpenseList";
 import type { Expense, NewExpense } from "./components/ExpenseList";
@@ -16,6 +17,7 @@ type Bill = {
   category: string;
   paid: boolean;
   fileName?: string;
+  imageUrl?: string;
 };
 
 export default function Home() {
@@ -31,6 +33,15 @@ const [billCategory, setBillCategory] = useState("Electricity");
 const [billFile, setBillFile] = useState<File | null>(null);
 const [uploading, setUploading] = useState(false);
 const [bills, setBills] = useState<Bill[]>([]);
+const [selectedBillPhoto, setSelectedBillPhoto] = useState<Bill | null>(null);
+const [editingBill, setEditingBill] = useState<Bill | null>(null);
+const [editAmount, setEditAmount] = useState("");
+const [editPhotoFile, setEditPhotoFile] = useState<File | null>(null);
+const [editError, setEditError] = useState("");
+const [savingEdit, setSavingEdit] = useState(false);
+const [failedBillPhotoIds, setFailedBillPhotoIds] = useState<Set<string>>(
+  new Set()
+);
 const [expenses, setExpenses] = useState<Expense[]>([]);
 const [loading, setLoading] = useState(true);
 const [loadError, setLoadError] = useState(false);
@@ -98,6 +109,7 @@ const saveBill = async () => {
   setUploading(true);
   setDataError("");
   try {
+    let uploadedFile: { filePath: string; fileName: string } | undefined;
     if (billFile) {
       const formData = new FormData();
       formData.append("file", billFile);
@@ -105,7 +117,10 @@ const saveBill = async () => {
         method: "POST",
         body: formData,
       });
-      await readApiResponse<{ message: string }>(uploadResponse);
+      uploadedFile = await readApiResponse<{
+        filePath: string;
+        fileName: string;
+      }>(uploadResponse);
     }
 
     const response = await fetch("/api/bills", {
@@ -116,10 +131,24 @@ const saveBill = async () => {
         amount,
         dueDate: billDate,
         category: billCategory,
-        fileName: billFile?.name ?? "",
+        fileName: uploadedFile?.fileName ?? "",
+        filePath: uploadedFile?.filePath,
       }),
     });
-    const savedBill = await readApiResponse<Bill>(response);
+    let savedBill = await readApiResponse<Bill>(response);
+    if (uploadedFile) {
+      const attachmentResponse = await fetch("/api/bills", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: savedBill.id,
+          filePath: uploadedFile.filePath,
+          fileName: uploadedFile.fileName,
+        }),
+      });
+      savedBill = await readApiResponse<Bill>(attachmentResponse);
+    }
+
     setBills((currentBills) => [...currentBills, savedBill]);
     setShowForm(false);
     setBillName("");
@@ -152,6 +181,61 @@ const setBillPaid = async (bill: Bill) => {
     setDataError(
       error instanceof Error ? error.message : "Unable to update bill."
     );
+  }
+};
+
+const saveBillEdit = async () => {
+  if (!editingBill) return;
+
+  setSavingEdit(true);
+  setEditError("");
+  try {
+    let replacementPhoto: { filePath: string; fileName: string } | undefined;
+    if (editPhotoFile) {
+      const formData = new FormData();
+      formData.append("file", editPhotoFile);
+      const uploadResponse = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      replacementPhoto = await readApiResponse<{
+        filePath: string;
+        fileName: string;
+      }>(uploadResponse);
+    }
+
+    const response = await fetch("/api/bills", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: editingBill.id,
+        name: editingBill.name,
+        amount: Number(editAmount),
+        dueDate: editingBill.dueDate,
+        category: editingBill.category,
+        filePath: replacementPhoto?.filePath,
+        fileName: replacementPhoto?.fileName,
+      }),
+    });
+    const updatedBill = await readApiResponse<Bill>(response);
+    setBills((currentBills) =>
+      currentBills.map((bill) =>
+        bill.id === updatedBill.id ? updatedBill : bill
+      )
+    );
+    setFailedBillPhotoIds((current) => {
+      const next = new Set(current);
+      next.delete(updatedBill.id);
+      return next;
+    });
+    setEditingBill(null);
+    setEditPhotoFile(null);
+  } catch (error) {
+    setEditError(
+      error instanceof Error ? error.message : "Unable to update bill."
+    );
+  } finally {
+    setSavingEdit(false);
   }
 };
 
@@ -221,6 +305,16 @@ const filteredBills = bills.filter((bill) => {
 
   return matchesName && matchesCategory && matchesStatus;
 });
+
+useEffect(() => {
+  if (!selectedBillPhoto) return;
+
+  const closeOnEscape = (event: KeyboardEvent) => {
+    if (event.key === "Escape") setSelectedBillPhoto(null);
+  };
+  window.addEventListener("keydown", closeOnEscape);
+  return () => window.removeEventListener("keydown", closeOnEscape);
+}, [selectedBillPhoto]);
 
   return (
     <main className="min-h-screen bg-gray-100 p-8">
@@ -455,21 +549,39 @@ const filteredBills = bills.filter((bill) => {
         }`}
       >
         <div>
-          <p
-            className={`font-medium ${
-              bill.paid
-                ? "text-gray-500 line-through"
-                : "text-gray-900"
-            }`}
-          >
-            {bill.name}
-          </p>
-
-          {bill.fileName && (
-            <p className="mt-1 text-xs text-gray-500">
-              📄 {bill.fileName}
+          <div className="flex items-center gap-3">
+            <p
+              className={`font-medium ${
+                bill.paid
+                  ? "text-gray-500 line-through"
+                  : "text-gray-900"
+              }`}
+            >
+              {bill.name}
             </p>
-          )}
+            {bill.imageUrl && !failedBillPhotoIds.has(bill.id) && (
+              <button
+                type="button"
+                aria-label={`View photo for ${bill.name}`}
+                onClick={() => setSelectedBillPhoto(bill)}
+                className="overflow-hidden rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <Image
+                  src={bill.imageUrl}
+                  alt=""
+                  width={48}
+                  height={48}
+                  unoptimized
+                  onError={() =>
+                    setFailedBillPhotoIds((current) =>
+                      new Set(current).add(bill.id)
+                    )
+                  }
+                  className="h-12 w-12 object-cover"
+                />
+              </button>
+            )}
+          </div>
 
           <p className="text-sm text-gray-500">
             {bill.category} •{" "}
@@ -539,6 +651,18 @@ const filteredBills = bills.filter((bill) => {
 
           <div className="flex flex-col gap-2">
             <button
+              onClick={() => {
+                setEditingBill({ ...bill });
+                setEditAmount(String(bill.amount));
+                setEditPhotoFile(null);
+                setEditError("");
+              }}
+              className="rounded-lg border px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100"
+            >
+              Edit
+            </button>
+
+            <button
               onClick={() => void setBillPaid(bill)}
               className="rounded-lg border px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100"
             >
@@ -564,6 +688,162 @@ const filteredBills = bills.filter((bill) => {
     ))}
   </div>
 </div>
+
+{editingBill && (
+  <div
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="edit-bill-heading"
+    onClick={() => setEditingBill(null)}
+    className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-6"
+  >
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        void saveBillEdit();
+      }}
+      onClick={(event) => event.stopPropagation()}
+      className="w-full max-w-md space-y-4 rounded-xl bg-white p-6 shadow"
+    >
+      <h2 id="edit-bill-heading" className="text-xl font-semibold text-gray-900">
+        Edit Bill
+      </h2>
+      <label className="block text-sm font-medium text-gray-700">
+        Replace bill photo
+        <input
+          type="file"
+          accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+          onChange={(event) =>
+            setEditPhotoFile(event.target.files?.[0] ?? null)
+          }
+          className="mt-1 w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-900"
+        />
+      </label>
+      {editPhotoFile && (
+        <p className="text-sm text-gray-600">
+          New photo: {editPhotoFile.name}
+        </p>
+      )}
+      <label className="block text-sm font-medium text-gray-700">
+        Bill name
+        <input
+          required
+          maxLength={200}
+          value={editingBill.name}
+          onChange={(event) =>
+            setEditingBill({ ...editingBill, name: event.target.value })
+          }
+          className="mt-1 w-full rounded-lg border border-gray-300 p-3 text-gray-900"
+        />
+      </label>
+      <label className="block text-sm font-medium text-gray-700">
+        Amount
+        <input
+          required
+          type="number"
+          min="0"
+          step="0.01"
+          value={editAmount}
+          onChange={(event) => setEditAmount(event.target.value)}
+          className="mt-1 w-full rounded-lg border border-gray-300 p-3 text-gray-900"
+        />
+      </label>
+      <label className="block text-sm font-medium text-gray-700">
+        Due date
+        <input
+          required
+          type="date"
+          value={editingBill.dueDate}
+          onChange={(event) =>
+            setEditingBill({ ...editingBill, dueDate: event.target.value })
+          }
+          className="mt-1 w-full rounded-lg border border-gray-300 p-3 text-gray-900"
+        />
+      </label>
+      <label className="block text-sm font-medium text-gray-700">
+        Category
+        <select
+          value={editingBill.category}
+          onChange={(event) =>
+            setEditingBill({ ...editingBill, category: event.target.value })
+          }
+          className="mt-1 w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-900"
+        >
+          {!["Electricity", "Internet", "Water", "Rent", "Other"].includes(
+            editingBill.category
+          ) && <option>{editingBill.category}</option>}
+          <option>Electricity</option>
+          <option>Internet</option>
+          <option>Water</option>
+          <option>Rent</option>
+          <option>Other</option>
+        </select>
+      </label>
+      {editError && (
+        <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-700">
+          {editError}
+        </p>
+      )}
+      <div className="flex gap-3">
+        <button
+          type="submit"
+          disabled={savingEdit}
+          className="rounded-lg bg-black px-5 py-3 font-medium text-white hover:bg-gray-800 disabled:opacity-60"
+        >
+          {savingEdit ? "Saving..." : "Save changes"}
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setEditingBill(null);
+            setEditPhotoFile(null);
+          }}
+          className="rounded-lg border px-5 py-3 font-medium text-gray-900"
+        >
+          Cancel
+        </button>
+      </div>
+    </form>
+  </div>
+)}
+
+{selectedBillPhoto?.imageUrl && (
+  <div
+    role="dialog"
+    aria-modal="true"
+    aria-label={`${selectedBillPhoto.name} bill photo`}
+    onClick={() => setSelectedBillPhoto(null)}
+    className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-6"
+  >
+    <div
+      className="relative max-h-full max-w-full"
+      onClick={(event) => event.stopPropagation()}
+    >
+      <button
+        type="button"
+        aria-label="Close image"
+        onClick={() => setSelectedBillPhoto(null)}
+        className="absolute right-2 top-2 rounded-lg bg-white px-3 py-2 text-sm font-medium text-gray-900 shadow hover:bg-gray-100"
+      >
+        Close
+      </button>
+      <Image
+        src={selectedBillPhoto.imageUrl}
+        alt={`Bill photo for ${selectedBillPhoto.name}`}
+        width={1200}
+        height={900}
+        unoptimized
+        onError={() => {
+          setFailedBillPhotoIds((current) =>
+            new Set(current).add(selectedBillPhoto.id)
+          );
+          setSelectedBillPhoto(null);
+        }}
+        className="max-h-[85vh] max-w-[90vw] rounded-lg object-contain"
+      />
+    </div>
+  </div>
+)}
 
       <div className="mt-8 rounded-xl bg-white p-6 shadow">
   <h2 className="text-xl font-semibold text-gray-900">

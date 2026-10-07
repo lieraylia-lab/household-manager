@@ -8,11 +8,16 @@ Supabase PostgreSQL. Each account can access only its own bills and expenses.
 1. Create a Supabase project.
 2. Copy `.env.example` to `.env.local` and fill in the project URL and
    publishable key from the Supabase project settings.
-3. Apply
-   [`supabase/migrations/20261006000000_create_household_data.sql`](./supabase/migrations/20261006000000_create_household_data.sql)
-   using the Supabase SQL Editor.
+3. Apply all SQL migrations in `supabase/migrations/` using the Supabase SQL
+   Editor. The bill-photo migrations configure the private Storage bucket and
+   its per-user access policies.
 4. In Supabase Authentication settings, add
-   `http://localhost:3000/auth/callback` as an allowed redirect URL.
+   `http://localhost:3000/auth/callback*` and
+   `https://<your-vercel-domain>/auth/callback*` as allowed redirect URL
+   patterns. The `*` allows the callback query used by password recovery. Add
+   the corresponding callback pattern for any Vercel preview domains you use.
+   Authentication links use the current site origin, so local and deployed
+   password resets return to the matching site.
 5. Install dependencies and run the development server:
 
 ```bash

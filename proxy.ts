@@ -35,11 +35,13 @@ export async function proxy(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
   const isLogin = pathname === "/login";
+  const isPasswordFlow =
+    pathname === "/forgot-password" || pathname === "/reset-password";
   const isAuthCallback = pathname.startsWith("/auth/");
   const isApi = pathname.startsWith("/api/");
 
   const hasClaims = Boolean(data?.claims);
-  if (!hasClaims && !isLogin && !isAuthCallback && !isApi) {
+  if (!hasClaims && !isLogin && !isPasswordFlow && !isAuthCallback && !isApi) {
     return redirectWithCookies(request, "/login", response);
   }
 

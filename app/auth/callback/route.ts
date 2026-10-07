@@ -17,7 +17,11 @@ export async function GET(request: Request) {
     return redirectWithoutCaching(request, "/login?error=confirmation");
   }
 
-  return redirectWithoutCaching(request, "/");
+  const next = requestUrl.searchParams.get("next");
+  return redirectWithoutCaching(
+    request,
+    next === "/reset-password" ? next : "/"
+  );
 }
 
 function redirectWithoutCaching(request: Request, path: string) {
