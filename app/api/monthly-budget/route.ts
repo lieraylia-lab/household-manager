@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { readJsonObject } from "../../../lib/request";
 import { getAuthenticatedSupabase } from "../../../lib/supabase/authenticated";
+import { calculateMonthlyBudget } from "../../../lib/monthly-budget-calculation";
 
 const MAX_BUDGET_AMOUNT = 9_999_999_999.99;
 
@@ -67,66 +68,23 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Valid month boundaries are required." }, { status: 400 });
   }
 
-  const { data: budget, error: budgetError } = await auth.supabase
-    .from("monthly_budgets")
-    .select("amount")
-    .eq("user_id", auth.userId)
-    .eq("year", period.year)
-    .eq("month", period.month)
-    .maybeSingle();
-
-  if (budgetError) {
-    console.error("Unable to load monthly budget:", budgetError);
-    return NextResponse.json({ error: "Unable to load monthly budget." }, { status: 500 });
+  try {
+    const snapshot = await calculateMonthlyBudget({
+      supabase: auth.supabase,
+      userId: auth.userId,
+      year: period.year,
+      month: period.month,
+      expenseStart: bounds.start,
+      expenseEnd: bounds.end,
+    });
+    return NextResponse.json(snapshot);
+  } catch (error) {
+    console.error("Unable to calculate monthly budget:", error);
+    return NextResponse.json(
+      { error: "Unable to load monthly budget." },
+      { status: 500 }
+    );
   }
-
-  let spent = 0;
-  let offset = 0;
-  const pageSize = 1000;
-  let hasMoreExpenses = true;
-  while (hasMoreExpenses) {
-    const {
-      data: expenses,
-      error: expensesError,
-      count,
-    } = await auth.supabase
-      .from("expenses")
-      .select("amount", { count: "exact" })
-      .eq("user_id", auth.userId)
-      .gte("created_at", bounds.start)
-      .lt("created_at", bounds.end)
-      .order("created_at", { ascending: true })
-      .order("id", { ascending: true })
-      .range(offset, offset + pageSize - 1);
-
-    if (expensesError) {
-      console.error("Unable to calculate monthly spending:", expensesError);
-      return NextResponse.json(
-        { error: "Unable to calculate monthly spending." },
-        { status: 500 }
-      );
-    }
-
-    for (const expense of expenses ?? []) {
-      spent += Number(expense.amount);
-    }
-    offset += expenses?.length ?? 0;
-    hasMoreExpenses =
-      count !== null
-        ? offset < count
-        : expenses !== null && expenses.length === pageSize;
-  }
-  if (!Number.isFinite(spent)) {
-    console.error("Monthly spending calculation returned a non-finite amount.");
-    return NextResponse.json({ error: "Unable to calculate monthly spending." }, { status: 500 });
-  }
-
-  return NextResponse.json({
-    year: period.year,
-    month: period.month,
-    budget: budget ? Number(budget.amount) : null,
-    spent,
-  });
 }
 
 export async function PUT(request: Request) {

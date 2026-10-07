@@ -7,6 +7,7 @@ type MonthlyBudgetCardProps = {
   month: number;
   budget: number | null;
   spent: number;
+  paidBills: number;
   daysRemaining: number;
   loading: boolean;
   saving: boolean;
@@ -22,6 +23,7 @@ export default function MonthlyBudgetCard({
   month,
   budget,
   spent,
+  paidBills,
   daysRemaining,
   loading,
   saving,
@@ -29,7 +31,7 @@ export default function MonthlyBudgetCard({
   onSave,
 }: MonthlyBudgetCardProps) {
   const [amount, setAmount] = useState(budget === null ? "" : String(budget));
-  const [editing, setEditing] = useState(budget === null);
+  const [editing, setEditing] = useState(false);
   const [inputError, setInputError] = useState("");
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
@@ -51,14 +53,15 @@ export default function MonthlyBudgetCard({
     }
   };
 
-  const remaining = budget === null ? null : budget - spent;
+  const consumed = spent + paidBills;
+  const remaining = budget === null ? null : budget - consumed;
   const remainingAmount = remaining ?? 0;
   const overBudget = remaining !== null && remaining < 0;
   const rawPercentUsed =
-    budget !== null && budget > 0 ? (spent / budget) * 100 : 0;
+    budget !== null && budget > 0 ? (consumed / budget) * 100 : 0;
   const percentUsed = Number.isFinite(rawPercentUsed) ? rawPercentUsed : 100;
   const progressWidth =
-    budget === 0 ? (spent > 0 ? 100 : 0) : Math.min(100, Math.max(0, percentUsed));
+    budget === 0 ? (consumed > 0 ? 100 : 0) : Math.min(100, Math.max(0, percentUsed));
   const monthLabel = new Intl.DateTimeFormat("en-IN", {
     month: "long",
     year: "numeric",
@@ -224,6 +227,9 @@ export default function MonthlyBudgetCard({
                     <p className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
                       {formatCurrency(spent)}
                     </p>
+                    <p className="mt-1 text-xs text-slate-400">
+                      Paid bills: {formatCurrency(paidBills)}
+                    </p>
                   </div>
                   <div className={`rounded-2xl border px-4 py-4 ${
                     overBudget
@@ -248,7 +254,7 @@ export default function MonthlyBudgetCard({
                     <span className={`text-sm font-semibold ${progressText}`}>
                       {budget > 0
                         ? `${percentUsed.toFixed(1)}% used`
-                        : spent > 0
+                        : consumed > 0
                           ? "Over budget (zero budget)"
                           : "0% used"}
                     </span>
@@ -264,12 +270,12 @@ export default function MonthlyBudgetCard({
                     aria-label="Monthly budget used"
                     aria-valuemin={0}
                     aria-valuemax={budget || 1}
-                    aria-valuenow={Math.min(spent, budget || 1)}
+                    aria-valuenow={Math.min(consumed, budget || 1)}
                     aria-valuetext={
                       budget > 0
                         ? `${percentUsed.toFixed(1)} percent used`
-                        : spent > 0
-                          ? `Spent ${formatCurrency(spent)} with a zero budget`
+                        : consumed > 0
+                          ? `Consumed ${formatCurrency(consumed)} with a zero budget`
                           : "No spending against a zero budget"
                     }
                   >
