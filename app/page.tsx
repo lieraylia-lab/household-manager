@@ -23,6 +23,7 @@ type Bill = {
 export default function Home() {
   const router = useRouter();
   const [showForm, setShowForm] = useState(false);
+const [showQuickExpense, setShowQuickExpense] = useState(false);
 const [billSearch, setBillSearch] = useState("");
 const [billCategoryFilter, setBillCategoryFilter] = useState("All");
 const [billStatusFilter, setBillStatusFilter] = useState("All");
@@ -298,6 +299,7 @@ const totalThisMonth = bills
     const date = new Date(bill.dueDate);
 
     return (
+      !bill.paid &&
       date.getMonth() === currentMonth &&
       date.getFullYear() === currentYear
     );
@@ -322,6 +324,17 @@ const filteredBills = bills.filter((bill) => {
   return matchesName && matchesCategory && matchesStatus;
 });
 
+const displayedBillsTotal = filteredBills.reduce(
+  (total, bill) => total + bill.amount,
+  0
+);
+const displayedBillsLabel =
+  billStatusFilter === "Paid"
+    ? "Paid total"
+    : billStatusFilter === "Unpaid"
+      ? "Unpaid total"
+      : "Bills total";
+
 useEffect(() => {
   if (!selectedBillPhoto) return;
 
@@ -332,6 +345,16 @@ useEffect(() => {
   return () => window.removeEventListener("keydown", closeOnEscape);
 }, [selectedBillPhoto]);
 
+useEffect(() => {
+  if (!showQuickExpense) return;
+
+  const closeOnEscape = (event: KeyboardEvent) => {
+    if (event.key === "Escape") setShowQuickExpense(false);
+  };
+  window.addEventListener("keydown", closeOnEscape);
+  return () => window.removeEventListener("keydown", closeOnEscape);
+}, [showQuickExpense]);
+
 const currentHour = new Date().getHours();
 const greeting =
   currentHour < 12
@@ -341,7 +364,7 @@ const greeting =
       : "Good evening";
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-gradient-to-br from-[#0b1220] via-[#101a30] to-[#182746] px-4 py-5 text-slate-900 sm:px-6 sm:py-8 lg:px-10">
+    <main className="relative min-h-screen overflow-x-hidden bg-[radial-gradient(ellipse_at_top,_rgba(49,73,125,0.28),_transparent_42%),linear-gradient(145deg,#080e19_0%,#0d1728_48%,#14213a_100%)] px-4 py-5 text-slate-100 sm:px-6 sm:py-8 lg:px-10">
       {toast && (
         <div
           role="status"
@@ -361,19 +384,21 @@ const greeting =
         </div>
       )}
       <div className="mx-auto max-w-7xl">
-<header className="flex flex-col gap-5 rounded-3xl bg-[#101a30] px-5 py-6 text-white shadow-xl shadow-slate-900/10 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+<header className="relative isolate flex flex-col gap-5 overflow-hidden rounded-[1.6rem] border border-white/10 bg-gradient-to-br from-[#1b2a49]/95 via-[#121d32]/95 to-[#101827]/95 px-5 py-6 text-white shadow-2xl shadow-black/25 ring-1 ring-inset ring-white/[0.03] sm:flex-row sm:items-center sm:justify-between sm:px-8">
+  <div aria-hidden="true" className="pointer-events-none absolute -right-12 -top-32 -z-10 h-72 w-72 rounded-full bg-indigo-500/20 blur-3xl" />
+  <div aria-hidden="true" className="pointer-events-none absolute bottom-[-8rem] left-[35%] -z-10 h-48 w-72 rounded-full bg-sky-400/[0.08] blur-3xl" />
   <div className="flex items-center gap-4">
-    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo-500 text-xl font-bold text-white shadow-lg shadow-indigo-950/30">
+    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-indigo-200/20 bg-gradient-to-br from-indigo-400 to-indigo-700 text-xl font-bold text-white shadow-lg shadow-indigo-950/40 ring-1 ring-inset ring-white/20">
       H
     </div>
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-200">
-        {greeting} · Household finance
+      <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-indigo-200">
+        {greeting}<span className="mx-2 text-indigo-400/70">/</span>Household finance
       </p>
-      <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
+      <h1 className="mt-1 text-2xl font-semibold tracking-[-0.035em] sm:text-3xl">
         Household Manager
       </h1>
-      <p className="mt-1 text-sm text-slate-300">
+      <p className="mt-1 text-sm text-slate-300/90">
         A clear view of the money that keeps home running.
       </p>
     </div>
@@ -382,13 +407,13 @@ const greeting =
   <div className="flex w-full gap-3 sm:w-auto">
     <button
       onClick={() => setShowForm(true)}
-      className="flex-1 rounded-xl bg-indigo-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-950/20 hover:bg-indigo-400 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-300/40 sm:flex-none"
+      className="flex-1 rounded-xl border border-indigo-300/30 bg-gradient-to-b from-indigo-400 to-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-950/35 ring-1 ring-inset ring-white/15 transition hover:-translate-y-0.5 hover:from-indigo-300 hover:to-indigo-500 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-300/40 sm:flex-none"
     >
       + Add bill
     </button>
     <button
       onClick={signOut}
-      className="rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-medium text-slate-100 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/20"
+      className="rounded-xl border border-white/15 bg-white/[0.04] px-4 py-3 text-sm font-medium text-slate-100 shadow-inner shadow-white/[0.03] hover:border-white/25 hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/20"
     >
       Log out
     </button>
@@ -396,19 +421,22 @@ const greeting =
 </header>
 
 {dataError && (
-  <p role="alert" className="mt-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-800 shadow-sm">
+  <p role="alert" className="mt-5 rounded-2xl border border-rose-300/25 bg-rose-950/45 p-4 text-sm font-medium text-rose-100 shadow-lg shadow-black/10">
     {dataError}
   </p>
 )}
 
 {showForm && (
-  <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+  <div className="relative mt-6 overflow-hidden rounded-[1.6rem] border border-indigo-300/20 bg-gradient-to-br from-[#182742] via-[#121d31] to-[#101827] p-5 shadow-2xl shadow-black/20 sm:p-7">
+    <div aria-hidden="true" className="pointer-events-none absolute -right-12 -top-24 h-56 w-56 rounded-full bg-indigo-400/10 blur-3xl" />
+    <div className="relative">
     <div className="flex items-start justify-between gap-4">
     <div>
-    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-indigo-600">New payment</p>
-    <h2 className="mt-1 text-xl font-semibold tracking-tight text-slate-900">
+    <p className="text-xs font-bold uppercase tracking-[0.18em] text-indigo-300">New payment</p>
+    <h2 className="mt-1 text-xl font-semibold tracking-tight text-white">
       Add a bill
     </h2>
+    <p className="mt-1 text-sm text-slate-400">Add the details and attach a photo or document if you have one.</p>
     </div>
     </div>
 
@@ -420,11 +448,11 @@ const greeting =
     const file = e.target.files?.[0] ?? null;
     setBillFile(file);
   }}
-  className="min-h-12 w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700 sm:col-span-2"
+  className="dashboard-dark-field min-h-12 w-full rounded-xl border border-white/10 bg-slate-950/35 p-3 text-sm text-slate-200 sm:col-span-2"
 />
 
 {billFile && (
-  <p className="text-sm text-slate-500 sm:col-span-2">
+  <p className="text-sm text-indigo-200 sm:col-span-2">
     Selected: {billFile.name}
   </p>
 )}
@@ -436,7 +464,7 @@ const greeting =
   placeholder="Bill name"
   value={billName}
   onChange={(e) => setBillName(e.target.value)}
-  className="w-full border border-slate-200 p-3 text-slate-900 placeholder:text-slate-400"
+  className="dashboard-dark-field w-full rounded-xl border border-white/10 bg-slate-950/35 p-3 text-slate-100 placeholder:text-slate-500"
 />
 
 <input
@@ -446,7 +474,7 @@ const greeting =
   placeholder="Amount"
   value={billAmount}
   onChange={(e) => setBillAmount(e.target.value)}
-  className="w-full border border-slate-200 p-3 text-slate-900 placeholder:text-slate-400"
+  className="dashboard-dark-field w-full rounded-xl border border-white/10 bg-slate-950/35 p-3 text-slate-100 placeholder:text-slate-500"
 />
 
 <input
@@ -454,37 +482,38 @@ const greeting =
   required
   value={billDate}
   onChange={(e) => setBillDate(e.target.value)}
-  className="w-full border border-slate-200 p-3 text-slate-900 sm:col-span-2"
+  className="dashboard-dark-field w-full rounded-xl border border-white/10 bg-slate-950/35 p-3 text-slate-100 sm:col-span-2"
 />
 
       <select
   value={billCategory}
   onChange={(e) => setBillCategory(e.target.value)}
-  className="w-full border border-slate-200 bg-white p-3 text-slate-900 sm:col-span-2"
+  className="dashboard-dark-field w-full rounded-xl border border-white/10 bg-slate-950/35 p-3 text-slate-100 sm:col-span-2"
 >
-        <option>Electricity</option>
-        <option>Internet</option>
-        <option>Water</option>
-        <option>Rent</option>
-        <option>Other</option>
+        <option className="text-slate-900">Electricity</option>
+        <option className="text-slate-900">Internet</option>
+        <option className="text-slate-900">Water</option>
+        <option className="text-slate-900">Rent</option>
+        <option className="text-slate-900">Other</option>
       </select>
 
       <div className="flex flex-col-reverse gap-3 sm:col-span-2 sm:flex-row">
   <button
   onClick={saveBill}
   disabled={uploading}
-  className="rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+  className="rounded-xl border border-indigo-300/25 bg-gradient-to-b from-indigo-400 to-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-950/30 ring-1 ring-inset ring-white/10 hover:from-indigo-300 hover:to-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
 >
   {uploading ? "Saving..." : "Save Bill"}
 </button>
 
         <button
           onClick={() => setShowForm(false)}
-          className="rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+          className="rounded-xl border border-white/15 bg-white/[0.04] px-5 py-3 text-sm font-semibold text-slate-200 hover:bg-white/[0.08]"
         >
           Cancel
         </button>
       </div>
+    </div>
     </div>
   </div>
 )}
@@ -500,23 +529,28 @@ const greeting =
   </div>
 )}
       <section aria-label="Financial overview" className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-2xl border-2 border-indigo-300 bg-gradient-to-br from-white via-indigo-50 to-indigo-100 p-5 shadow-[inset_0_1px_0_rgb(255_255_255/90%),0_1px_2px_rgb(15_23_42/6%)] transition hover:-translate-y-0.5 hover:shadow-md sm:p-6">
+        <div className="group relative overflow-hidden rounded-2xl border border-indigo-300/25 bg-gradient-to-br from-[#202d4d] via-[#17233c] to-[#121b2e] p-5 shadow-lg shadow-black/15 ring-1 ring-inset ring-white/[0.04] transition duration-200 hover:-translate-y-1 hover:border-indigo-200/40 hover:shadow-xl hover:shadow-indigo-950/20 sm:p-6">
+          <div aria-hidden="true" className="pointer-events-none absolute -right-8 -top-12 h-32 w-32 rounded-full bg-indigo-400/10 blur-2xl transition group-hover:bg-indigo-300/15" />
+          <div className="relative">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-slate-500">Due this month</h2>
-            <span className="rounded-xl bg-indigo-50 px-2.5 py-2 text-xs font-bold text-indigo-600">Bills due</span>
+            <h2 className="text-sm font-medium text-slate-300">Due this month</h2>
+            <span className="rounded-lg border border-indigo-300/20 bg-indigo-400/10 px-2.5 py-1.5 text-[11px] font-bold text-indigo-200">Bills due</span>
           </div>
-          <p className="mt-5 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
+          <p className="mt-5 text-3xl font-semibold tracking-[-0.04em] text-white sm:text-4xl">
   ₹{totalThisMonth.toLocaleString("en-IN")}
 </p>
           <p className="mt-2 text-xs text-slate-400">Based on bill due dates</p>
+          </div>
         </div>
 
-        <div className="rounded-2xl border-2 border-amber-300 bg-gradient-to-br from-white via-amber-50 to-amber-100 p-5 shadow-[inset_0_1px_0_rgb(255_255_255/90%),0_1px_2px_rgb(15_23_42/6%)] transition hover:-translate-y-0.5 hover:shadow-md sm:p-6">
+        <div className="group relative overflow-hidden rounded-2xl border border-amber-300/25 bg-gradient-to-br from-[#352c36] via-[#242437] to-[#171e2e] p-5 shadow-lg shadow-black/15 ring-1 ring-inset ring-white/[0.04] transition duration-200 hover:-translate-y-1 hover:border-amber-200/40 hover:shadow-xl hover:shadow-amber-950/20 sm:p-6">
+          <div aria-hidden="true" className="pointer-events-none absolute -right-8 -top-12 h-32 w-32 rounded-full bg-amber-400/10 blur-2xl transition group-hover:bg-amber-300/15" />
+          <div className="relative">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-slate-500">Due this week</h2>
-            <span className="rounded-xl bg-amber-50 px-2.5 py-2 text-xs font-bold text-amber-600">Bills due</span>
+            <h2 className="text-sm font-medium text-slate-300">Due this week</h2>
+            <span className="rounded-lg border border-amber-300/20 bg-amber-400/10 px-2.5 py-1.5 text-[11px] font-bold text-amber-200">Bills due</span>
           </div>
-          <p className="mt-5 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
+          <p className="mt-5 text-3xl font-semibold tracking-[-0.04em] text-white sm:text-4xl">
   ₹
   {bills
     .filter((bill) => {
@@ -534,34 +568,41 @@ const greeting =
     })
     .reduce((total, bill) => total + bill.amount, 0)}
 </p>
-          <p className="mt-2 text-xs text-amber-600">Upcoming unpaid bills</p>
+          <p className="mt-2 text-xs text-amber-200/75">Upcoming unpaid bills</p>
+          </div>
         </div>
 
-        <div className="rounded-2xl border-2 border-rose-300 bg-gradient-to-br from-white via-rose-50 to-rose-100 p-5 shadow-[inset_0_1px_0_rgb(255_255_255/90%),0_1px_2px_rgb(15_23_42/6%)] transition hover:-translate-y-0.5 hover:shadow-md sm:p-6">
+        <div className="group relative overflow-hidden rounded-2xl border border-rose-300/25 bg-gradient-to-br from-[#382b3c] via-[#252237] to-[#171b2c] p-5 shadow-lg shadow-black/15 ring-1 ring-inset ring-white/[0.04] transition duration-200 hover:-translate-y-1 hover:border-rose-200/40 hover:shadow-xl hover:shadow-rose-950/20 sm:p-6">
+          <div aria-hidden="true" className="pointer-events-none absolute -right-8 -top-12 h-32 w-32 rounded-full bg-rose-400/10 blur-2xl transition group-hover:bg-rose-300/15" />
+          <div className="relative">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-slate-500">Outstanding</h2>
-            <span className="rounded-xl bg-rose-50 px-2.5 py-2 text-xs font-bold text-rose-600">Unpaid bills</span>
+            <h2 className="text-sm font-medium text-slate-300">Outstanding</h2>
+            <span className="rounded-lg border border-rose-300/20 bg-rose-400/10 px-2.5 py-1.5 text-[11px] font-bold text-rose-200">Unpaid bills</span>
           </div>
 
-          <p className="mt-5 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
+          <p className="mt-5 text-3xl font-semibold tracking-[-0.04em] text-white sm:text-4xl">
     ₹
     {bills
       .filter((bill) => !bill.paid)
       .reduce((total, bill) => total + bill.amount, 0)}
   </p>
-          <p className="mt-2 text-xs text-slate-400">Across all unpaid bills</p>
+          <p className="mt-2 text-xs text-rose-100/60">Across all unpaid bills</p>
+          </div>
         </div>
 
-        <div className="rounded-2xl border-2 border-emerald-300 bg-gradient-to-br from-white via-emerald-50 to-emerald-100 p-5 shadow-[inset_0_1px_0_rgb(255_255_255/90%),0_1px_2px_rgb(15_23_42/6%)] transition hover:-translate-y-0.5 hover:shadow-md sm:p-6">
+        <div className="group relative overflow-hidden rounded-2xl border border-emerald-300/25 bg-gradient-to-br from-[#1c383a] via-[#172c35] to-[#121d2d] p-5 shadow-lg shadow-black/15 ring-1 ring-inset ring-white/[0.04] transition duration-200 hover:-translate-y-1 hover:border-emerald-200/40 hover:shadow-xl hover:shadow-emerald-950/20 sm:p-6">
+          <div aria-hidden="true" className="pointer-events-none absolute -right-8 -top-12 h-32 w-32 rounded-full bg-emerald-400/10 blur-2xl transition group-hover:bg-emerald-300/15" />
+          <div className="relative">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-slate-500">Total expenses</h2>
-            <span className="rounded-xl bg-emerald-50 px-2.5 py-2 text-xs font-bold text-emerald-600">Expenses</span>
+            <h2 className="text-sm font-medium text-slate-300">Total expenses</h2>
+            <span className="rounded-lg border border-emerald-300/20 bg-emerald-400/10 px-2.5 py-1.5 text-[11px] font-bold text-emerald-200">Expenses</span>
           </div>
 
-          <p className="mt-5 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
+          <p className="mt-5 text-3xl font-semibold tracking-[-0.04em] text-white sm:text-4xl">
             ₹{totalExpenses.toLocaleString("en-IN")}
           </p>
-          <p className="mt-2 text-xs text-slate-400">Recorded expenses</p>
+          <p className="mt-2 text-xs text-emerald-100/60">Recorded expenses</p>
+          </div>
         </div>
       </section>
       <section aria-labelledby="upcoming-payments-heading" className="relative mt-6 overflow-hidden rounded-[1.75rem] border border-amber-300/25 bg-gradient-to-br from-[#29243a] via-[#171e31] to-[#111827] p-5 shadow-xl shadow-slate-950/15 sm:p-7">
@@ -576,10 +617,10 @@ const greeting =
     </div>
     <div className="flex flex-wrap items-center gap-3">
       <div className="rounded-xl border border-amber-300/20 bg-amber-400/10 px-4 py-2">
-        <p className="text-[10px] font-bold uppercase tracking-wider text-amber-200">Unpaid total</p>
-        <p className="mt-0.5 text-lg font-bold tabular-nums text-white">₹{bills.filter((bill) => !bill.paid).reduce((sum, bill) => sum + bill.amount, 0).toLocaleString("en-IN")}</p>
+        <p className="text-[10px] font-bold uppercase tracking-wider text-amber-200">{displayedBillsLabel}</p>
+        <p className="mt-0.5 text-lg font-bold tabular-nums text-white">₹{displayedBillsTotal.toLocaleString("en-IN")}</p>
       </div>
-      <p className="w-fit rounded-full border border-amber-300/20 bg-slate-950/25 px-3 py-1.5 text-sm font-medium text-amber-100">{bills.length} {bills.length === 1 ? "bill" : "bills"} tracked</p>
+      <p className="w-fit rounded-full border border-amber-300/20 bg-slate-950/25 px-3 py-1.5 text-sm font-medium text-amber-100">{filteredBills.length} {filteredBills.length === 1 ? "bill" : "bills"} {billStatusFilter === "All" ? "shown" : billStatusFilter.toLowerCase()}</p>
     </div>
   </div>
 
@@ -590,14 +631,14 @@ const greeting =
       placeholder="Search bills..."
       value={billSearch}
       onChange={(event) => setBillSearch(event.target.value)}
-      className="w-full border border-slate-200 p-3 text-slate-900 placeholder:text-slate-400"
+      className="dashboard-dark-field w-full border border-white/10 bg-slate-950/30 p-3 text-slate-100 placeholder:text-slate-500"
     />
 
     <select
       aria-label="Filter bills by category"
       value={billCategoryFilter}
       onChange={(event) => setBillCategoryFilter(event.target.value)}
-      className="w-full border border-slate-200 bg-white p-3 text-slate-900"
+      className="dashboard-dark-field w-full border border-white/10 bg-slate-950/30 p-3 text-slate-100"
     >
       <option>All</option>
       {Array.from(new Set(bills.map((bill) => bill.category))).map((category) => (
@@ -609,7 +650,7 @@ const greeting =
       aria-label="Filter bills by payment status"
       value={billStatusFilter}
       onChange={(event) => setBillStatusFilter(event.target.value)}
-      className="w-full border border-slate-200 bg-white p-3 text-slate-900 sm:col-span-2 lg:col-span-1"
+      className="dashboard-dark-field w-full border border-white/10 bg-slate-950/30 p-3 text-slate-100 sm:col-span-2 lg:col-span-1"
     >
       <option>All</option>
       <option>Paid</option>
@@ -667,8 +708,8 @@ const greeting =
             <p
               className={`max-w-full rounded-xl border px-3.5 py-2 text-base font-bold tracking-tight shadow-sm sm:text-lg ${
                 bill.paid
-                  ? "border-slate-200 bg-slate-50 text-slate-400 line-through"
-                  : "border-indigo-100 bg-indigo-50/70 text-slate-950"
+                  ? "border-white/10 bg-white/[0.04] text-slate-400 line-through"
+                  : "border-indigo-300/20 bg-indigo-400/10 text-indigo-50"
               }`}
             >
               {bill.name}
@@ -678,7 +719,7 @@ const greeting =
                 type="button"
                 aria-label={`View photo for ${bill.name}`}
                 onClick={() => setSelectedBillPhoto(bill)}
-                className="shrink-0 overflow-hidden rounded-xl border border-slate-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="shrink-0 overflow-hidden rounded-xl border border-white/15 shadow-lg shadow-black/20 transition hover:border-indigo-200/50 hover:shadow-indigo-950/30 focus:outline-none focus:ring-2 focus:ring-indigo-300"
               >
                 <Image
                   src={bill.imageUrl}
@@ -740,6 +781,20 @@ const greeting =
               })()
             }`}
           >
+            <span className={`mr-1.5 h-1.5 w-1.5 rounded-full ${
+              (() => {
+                const today = new Date();
+                const dueDate = new Date(bill.dueDate);
+                today.setHours(0, 0, 0, 0);
+                dueDate.setHours(0, 0, 0, 0);
+                const daysUntil = Math.round(
+                  (dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+                );
+                if (daysUntil < 0) return "bg-rose-300";
+                if (daysUntil === 0) return "bg-amber-200";
+                return "bg-sky-200";
+              })()
+            }`} aria-hidden="true" />
             {(() => {
               const today = new Date();
               const dueDate = new Date(bill.dueDate);
@@ -779,7 +834,7 @@ const greeting =
                 setEditPhotoFile(null);
                 setEditError("");
               }}
-              className="rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2.5 text-xs font-semibold text-indigo-700 hover:border-indigo-300 hover:bg-indigo-100 sm:text-sm"
+              className="rounded-xl border border-indigo-300/20 bg-indigo-400/10 px-3 py-2.5 text-xs font-semibold text-indigo-100 transition hover:border-indigo-200/40 hover:bg-indigo-400/20 sm:text-sm"
             >
               Edit
             </button>
@@ -788,8 +843,8 @@ const greeting =
               onClick={() => void setBillPaid(bill)}
               className={`rounded-xl border px-3 py-2.5 text-xs font-semibold sm:text-sm ${
                 bill.paid
-                  ? "border-amber-200 bg-amber-50 text-amber-800 hover:border-amber-300 hover:bg-amber-100"
-                  : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:border-emerald-300 hover:bg-emerald-100"
+                  ? "border-amber-300/20 bg-amber-400/10 text-amber-100 hover:border-amber-200/35 hover:bg-amber-400/20"
+                  : "border-emerald-300/20 bg-emerald-400/10 text-emerald-100 hover:border-emerald-200/35 hover:bg-emerald-400/20"
               }`}
             >
               {bill.paid ? "Mark Unpaid" : "Mark Paid"}
@@ -804,7 +859,7 @@ const greeting =
                 if (!confirmed) return;
                 void deleteBill(bill);
               }}
-              className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2.5 text-xs font-semibold text-rose-700 hover:border-rose-300 hover:bg-rose-100 sm:text-sm"
+              className="rounded-xl border border-rose-300/20 bg-rose-400/10 px-3 py-2.5 text-xs font-semibold text-rose-100 transition hover:border-rose-200/35 hover:bg-rose-400/20 sm:text-sm"
             >
               Delete
             </button>
@@ -1037,6 +1092,57 @@ const greeting =
 <ExpenseForm onAdd={addExpense} />
 <ExpenseList expenses={expenses} loading={loading} loadError={loadError} />
       </div>
+
+      {showQuickExpense && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="quick-expense-heading"
+          onClick={() => setShowQuickExpense(false)}
+          className="fixed inset-0 z-[60] flex items-end justify-center overflow-y-auto bg-slate-950/75 p-3 backdrop-blur-sm sm:items-center sm:p-6"
+        >
+          <div
+            className="my-auto w-full max-w-xl [&>section]:mt-0"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="mb-3 flex items-center justify-between rounded-2xl border border-white/10 bg-[#111d2d] px-4 py-3 shadow-xl shadow-black/20">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-300">Quick entry</p>
+                <h2 id="quick-expense-heading" className="mt-0.5 text-sm font-semibold text-white">Add an expense</h2>
+              </div>
+              <button
+                type="button"
+                aria-label="Close add expense dialog"
+                onClick={() => setShowQuickExpense(false)}
+                className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-xl text-slate-300 hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300/60"
+              >
+                ×
+              </button>
+            </div>
+            <ExpenseForm
+              onAdd={async (expense) => {
+                await addExpense(expense);
+                setShowQuickExpense(false);
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {!showQuickExpense && (
+        <button
+          type="button"
+          aria-label="Add expense"
+          title="Add expense"
+          onClick={() => setShowQuickExpense(true)}
+          className="group fixed bottom-5 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full border border-emerald-200/30 bg-gradient-to-br from-emerald-400 to-teal-600 text-3xl font-light leading-none text-white shadow-xl shadow-emerald-950/50 ring-1 ring-inset ring-white/20 transition duration-200 hover:-translate-y-1 hover:scale-105 hover:from-emerald-300 hover:to-teal-500 hover:shadow-2xl hover:shadow-emerald-900/50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-emerald-200/50 active:scale-95 sm:bottom-7 sm:right-7"
+        >
+          <span aria-hidden="true" className="transition-transform duration-200 group-hover:rotate-90">+</span>
+          <span className="pointer-events-none absolute right-16 whitespace-nowrap rounded-lg border border-white/10 bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+            Add expense
+          </span>
+        </button>
+      )}
     </main>
   );
 }
